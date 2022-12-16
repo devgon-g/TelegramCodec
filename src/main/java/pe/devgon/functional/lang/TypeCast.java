@@ -1,4 +1,4 @@
-package pe.devgon.functional.lang.type;
+package pe.devgon.functional.lang;
 
 import java.util.function.Function;
 
