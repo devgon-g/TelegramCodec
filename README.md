@@ -1,121 +1,70 @@
 # TelegramCodec
 
-## 프로젝트 소개
-TelegramCodec은 텔레그램(고정 길이 문자열 전문) 메시지를 애노테이션으로 정의하고, 런타임에 리플렉션을 활용해 문자열을 생성·파싱하는 라이브러리입니다. 현재 모든 핵심 구현은 `pe.devgon` 패키지 아래로 통합되어 있으며, 전문 인코딩/디코딩 파이프라인과 TCP 템플릿 클라이언트를 제공합니다.
+## 프로젝트 개요
+TelegramCodec은 고정 길이 문자열로 구성된 텔레그램 전문을 어노테이션 기반으로 정의하고, 객체 ↔ 문자열 간에 직렬화/역직렬화를 수행하는 Java 8 라이브러리입니다. 템플릿/클라이언트 조합을 통해 TCP 통신까지 처리할 수 있으며, 인터페이스 로그(IfLog)를 표준 포맷으로 남기는 기능도 제공합니다.
 
 ## 주요 기능
-- `@Protocol`, `@FieldItem`, `@CompositeItem`, `@ListItem`, `@Filler` 애노테이션으로 전문 레이아웃 선언
-- `pe.devgon.telegram.encode.EncodeItemHandlers` / `pe.devgon.telegram.decode.DecodeItemHandlers`를 통한 반사 기반 문자열 조립·파싱
-- `StringTelegramRequestSource`, `StringTelegramResponseSource`로 고정 길이 문자열 버퍼 관리
-- `TelegramTemplate` + `TcpClient` 조합으로 TCP 전문 송수신 템플릿 제공
-- `Pad`, `CastTo`, `CountHolder`, `Masking`, `IDGenerator` 등 공용 유틸리티 제공
+- `@Protocol`, `@FieldItem`, `@CompositeItem`, `@ListItem`, `@Filler` 등 도메인 모델을 전문 레이아웃에 매핑하는 어노테이션
+- `EncodeItemHandlers`/`DecodeItemHandlers`를 이용한 반사(reflection) 기반 전문 빌드 및 파싱
+- `StringTelegramRequestSource`, `StringTelegramResponseSource`를 통한 고정 길이 버퍼 처리
+- `TelegramTemplate` + `TcpClient` 조합으로 전문 송수신 흐름 일원화 (`SimpleTcpClient` 제공)
+- `Pad`, `CastTo`, `Masking`, `IDGenerator`, `RollingSequenceIdGenerator` 등 재사용 가능한 유틸리티 집합
+- `IfLogTemplate`를 이용한 전문 입출 로그(타깃 시스템, IN/OUT, 전문 본문 등) 출력
 
-## 기술 스택 및 의존성
-- Java 8
-- Apache Maven 3.x
-- Lombok (annotation processing 활성화 필요)
-- Apache Commons Lang3
-- SLF4J & Logback
-- 일부 유틸(`IdLoginTokens`)은 `cj.tlj.*` 사내 라이브러리를 기대하므로, 실제 빌드 시 해당 모듈을 추가하거나 대체 구현이 필요합니다.
-
-## 디렉터리 구조
+## 패키지 구조
 ```
-src/
-  main/
-    java/
-      pe/devgon/
-        functional/           # Pad, TypeCast, CastTo 등 함수형 유틸
-        logging/              # IfLog, IfLogTemplate
-        telegram/             # 템플릿, TCP 클라이언트, 인코더/디코더, 애노테이션
-        util/                 # 날짜/ID 생성, 마스킹, 시퀀스 유틸
-    resources/
-      logback.xml             # 기본 로그 설정
-  test/
-    java/pe/devgon/functional # Pad, TypeCast 등의 단위 테스트
+src/main/java/pe/devgon
+├─ telegram/annotation   # 전문 정의용 어노테이션 모음
+├─ telegram/encode       # 전문 빌더, 요청 소스(StringTelegramRequestSource 등)
+├─ telegram/decode       # 전문 파서, 응답 소스(StringTelegramResponseSource 등)
+├─ telegram              # 템플릿, TCP 클라이언트, 카운트 홀더
+├─ functional/lang       # TypeCast, CastTo, FieldGetter 유틸
+├─ functional/util       # Pad 등 부가 유틸리티
+├─ util                  # 날짜/ID/마스킹/XSS/시퀀스 유틸 모음
+└─ logging               # IfLog 모델 및 로깅 템플릿
 ```
+테스트는 `src/test/java/pe/devgon/functional` 아래에 위치하며 Pad와 TypeCast 동작을 검증합니다.
 
-## 핵심 패키지 개요
-- `pe.devgon.telegram.annotation` : 전문 설계를 위한 애노테이션 모음
-- `pe.devgon.telegram.encode` : 필드 값을 문자열로 직렬화하는 핸들러 팩토리
-- `pe.devgon.telegram.decode` : 응답 문자열을 객체로 역직렬화하는 핸들러
-- `pe.devgon.telegram` : `TelegramTemplate`, `TcpClient`, `SimpleTcpClient`, `CountHolder`
-- `pe.devgon.functional.util` : 패딩/형 변환 관련 도구
-- `pe.devgon.util` : ID/날짜 생성, 마스킹, XSS 이스케이프 등 보조 기능
+## 사용 예시
+1. **전문 클래스 작성**: POJO 필드를 어노테이션으로 꾸며 전문 구조를 정의합니다.
+   ```java
+   @Protocol(itemCount = 3)
+   public class SampleRequest {
+       @FieldItem(seq = 0, size = 4, pad = Pad.LEFT_ZERO)
+       private int length;
 
-## 사용 방법
-### 1. 전문 클래스 정의
-```java
-import pe.devgon.telegram.annotation.*;
-import pe.devgon.functional.util.Pad;
+       @FieldItem(seq = 1, size = 10)
+       private String userId;
 
-@Protocol(itemCount = 5, fillers = {
-    @Filler(seq = 4, size = 10)
-})
-public class SampleRequest {
-    @FieldItem(seq = 0, size = 4, pad = Pad.LEFT_ZERO)
-    private int length;
+       @CompositeItem(seq = 2)
+       private Detail detail;
+   }
+   ```
+2. **송신 실행**: `TelegramTemplate`이 객체를 문자열 전문으로 만들고, `TcpClient` 구현이 전송합니다.
+   ```java
+   TcpClient client = new SimpleTcpClient("core-system", "127.0.0.1", 9000);
+   TelegramTemplate template = new TelegramTemplate(client);
+   SampleResponse response = template.submit(request, SampleResponse.class);
+   ```
+3. **응답 파싱**: `DecodeItemHandlers`가 응답 문자열을 `SampleResponse` 객체에 주입합니다. 리스트 필드는 `@ListItem`의 `countSeq`/`dataSeq`에 따라 카운트와 데이터를 분리해 처리합니다.
 
-    @FieldItem(seq = 1, size = 10)
-    private String userId;
-
-    @CompositeItem(seq = 2)
-    private Detail detail;
-
-    @ListItem(countSeq = 3, countSize = 2, countPad = Pad.LEFT_ZERO, dataSeq = 4)
-    private List<LineItem> items;
-}
-
-@Protocol(itemCount = 2)
-class Detail {
-    @FieldItem(seq = 0, size = 8)
-    private String requestDate;
-
-    @FieldItem(seq = 1, size = 15, pad = Pad.RIGHT_SPACE)
-    private String comment;
-}
-```
-`@ListItem`는 카운트 필드(`countSeq`)와 실제 데이터 필드(`dataSeq`)를 별도의 시퀀스로 배치하며, `fixedCount`를 지정하면 응답 본문에서 개수를 읽지 않고 고정 값으로 처리합니다.
-
-### 2. 전문 생성 및 송신
-```java
-TcpClient client = new SimpleTcpClient("core-system", "127.0.0.1", 9000);
-TelegramTemplate template = new TelegramTemplate(client);
-
-SampleRequest request = new SampleRequest();
-// TODO: 필드 값 세팅
-
-SampleResponse response = template.submit(request, SampleResponse.class);
-```
-`submit`은 내부적으로 `EncodeItemHandlers`로 요청 전문을 빌드하고, `TcpClient`를 통해 전송한 뒤, `DecodeItemHandlers`로 응답 객체를 채워 반환합니다. `SimpleTcpClient`는 `Socket` 기반 구현 예시이며, 운영 환경에 맞춰 `TcpClient`를 확장해 사용할 수 있습니다.
-
-### 3. 응답 파싱
-```java
-@Protocol(itemCount = 3)
-public class SampleResponse {
-    @FieldItem(seq = 0, size = 4)
-    private String responseCode;
-
-    @FieldItem(seq = 1, size = 20)
-    private String message;
-
-    @CompositeItem(seq = 2)
-    private Detail detail;
-}
-```
-응답 전문에서도 동일한 애노테이션을 사용하며, `DecodeItemHandlers`가 시퀀스 순서대로 문자열을 잘라 필드에 주입합니다.
-
-## 빌드 및 테스트
+## 빌드 & 테스트
 ```bash
-mvn clean test
+C:\temp\apache-maven-3.9.6\bin\mvn.cmd -f pom.xml -Dfile.encoding=UTF-8 clean test
 ```
-- Lombok을 사용하므로 IDE에서 annotation processing을 활성화해야 경고 없이 컴파일됩니다.
-- `cj.tlj.*` 참조가 있는 클래스는 해당 라이브러리가 없으면 컴파일 오류가 발생하므로, 필요 시 의존성을 추가하거나 import를 제거해야 합니다.
+- Windows 기본 인코딩(MS949)에서 한글 주석이 포함된 소스를 컴파일하려면 `-Dfile.encoding=UTF-8` 옵션을 권장합니다.
+- Lombok을 사용하므로 IDE에서 annotation processing을 활성화해야 합니다.
 
-## 로깅
-- `src/main/resources/logback.xml`에서 콘솔과 `/tmp/access.log`(daily rolling)로 로그를 출력하도록 설정돼 있습니다.
-- 패키지별 로깅 레벨은 필요에 따라 조정하세요.
+## 구성 요소 상세
+- **TelegramTemplate**: 요청 객체를 전문 문자열로 빌드하고 TCP 전송 후 응답 객체를 생성합니다. 처리 결과를 `IfLogTemplate`을 통해 기록합니다.
+- **SimpleTcpClient**: `Socket` 기반 기본 구현으로, 요청 전문을 전송하고 전체 응답 바이트를 읽어 `StringTelegramResponseSource`로 래핑합니다.
+- **EncodeItemHandlers / DecodeItemHandlers**: Reflection을 이용해 필드 순서(`seq`)와 길이(`size`)에 맞춰 전문을 조립/해석합니다. 리스트 항목은 `CountHolder`로 반복 횟수를 공유합니다.
+- **StringTelegramRequestSource / ResponseSource**: 고정 길이 전문 버퍼 역할을 수행하며, 응답 쪽은 내부적으로 `ByteBuffer`와 `Charset`을 사용합니다.
+- **functional.lang / util**: 문자열 패딩(`Pad`), 타입 변환(`CastTo`, `TypeCast`), 일시/ID 생성, 마스킹, 연속번호 생성 등의 보조 로직을 제공합니다.
+- **logging**: `IfLog` 모델과 `IfLogTemplate` 유틸리티가 전문 입출 로그를 일관된 포맷으로 남깁니다.
 
-## 참고 및 주의 사항
-- 모든 구현이 `pe.devgon` 패키지로 통합되었으므로, 외부에서 가져온 예제 코드를 사용할 때 패키지 경로를 확인하세요.
-- `IdLoginTokens` 등 일부 클래스는 사내 시스템(`cj.tlj.*`)을 가정하고 있어 외부 환경에서는 대체 구현이나 주석 처리가 필요합니다.
-- 고정 길이 전문 특성상 필드 길이와 패딩 정책을 정확히 맞춰야 하며, `valueVerifier`(디폴트 구현)는 길이가 초과되면 잘라내므로 데이터 손실 가능성을 염두에 두고 설계해야 합니다.
+## 주의 사항
+- `pom.xml` 내 `org.junit.jupiter:junit-jupiter` 의존성이 중복 선언되어 있으며 `RELEASE` 버전을 사용합니다. 추후 안정적인 버전으로 정리하는 것이 좋습니다.
+- 일부 주석이 기존 인코딩 문제로 깨져 있을 수 있습니다. 가능하면 소스 파일 전체를 UTF-8로 정렬하세요.
+- `IdLoginTokens`와 같이 외부(`cj.tlj.*`) 의존이 필요했던 이전 코드가 제거되었으므로, 추가로 필요한 내부 라이브러리가 있다면 직접 구현하거나 의존성을 명확히 해야 합니다.
+- TCP 통신 시 운영 환경에 맞는 타임아웃/예외 처리가 필요하다면 `TcpClient` 인터페이스를 확장해 사용하세요.
