@@ -1,4 +1,4 @@
-﻿package pe.devgon.util;
+package pe.devgon.util;
 
 import cj.tlj.app.auth.model.LoginReq;
 import cj.tlj.app.auth.model.Member;

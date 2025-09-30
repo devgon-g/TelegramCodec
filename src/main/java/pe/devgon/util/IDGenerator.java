@@ -1,4 +1,4 @@
-﻿package pe.devgon.util;
+package pe.devgon.util;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import pe.devgon.util.sequence.RollingSequenceIdGenerator;

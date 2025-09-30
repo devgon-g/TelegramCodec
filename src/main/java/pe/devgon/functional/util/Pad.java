@@ -1,4 +1,4 @@
-﻿package pe.devgon.functional.util;
+package pe.devgon.functional.util;
 
 import org.apache.commons.lang3.StringUtils;
 

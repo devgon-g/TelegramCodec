@@ -1,4 +1,4 @@
-﻿package pe.devgon.functional.lang.reflection;
+package pe.devgon.functional.lang.reflection;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;

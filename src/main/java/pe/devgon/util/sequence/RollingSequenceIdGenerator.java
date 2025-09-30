@@ -1,4 +1,4 @@
-﻿package pe.devgon.util.sequence;
+package pe.devgon.util.sequence;
 
 import pe.devgon.util.Dates;
 import pe.devgon.functional.util.Pad;

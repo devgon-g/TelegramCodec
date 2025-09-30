@@ -1,4 +1,4 @@
-﻿package pe.devgon.telegram;
+package pe.devgon.telegram;
 
 import pe.devgon.telegram.decode.TelegramResponseSource;
 import pe.devgon.telegram.encode.TelegramRequestSource;

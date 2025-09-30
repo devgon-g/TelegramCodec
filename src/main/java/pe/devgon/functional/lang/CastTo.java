@@ -1,4 +1,4 @@
-﻿package pe.devgon.functional.lang;
+package pe.devgon.functional.lang;
 
 import java.util.HashMap;
 import java.util.Map;

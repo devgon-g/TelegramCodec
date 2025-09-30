@@ -1,4 +1,4 @@
-﻿package pe.devgon.telegram.decode;
+package pe.devgon.telegram.decode;
 
 import lombok.extern.slf4j.Slf4j;
 import pe.devgon.functional.lang.CastTo;

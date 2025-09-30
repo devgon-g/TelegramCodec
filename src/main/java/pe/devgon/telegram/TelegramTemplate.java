@@ -1,4 +1,4 @@
-﻿package pe.devgon.telegram;
+package pe.devgon.telegram;
 
 import lombok.extern.slf4j.Slf4j;
 import pe.devgon.logging.IfLogTemplate;

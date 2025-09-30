@@ -1,4 +1,4 @@
-﻿package pe.devgon.util;
+package pe.devgon.util;
 
 public class XSSEscaper {
     private XSSEscaper() {

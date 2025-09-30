@@ -11,7 +11,7 @@ import java.util.function.Function;
 class TypeCastTest {
 
     @Test
-    public void String_타입_테스트() {
+    public void String_????뚯뒪??) {
         Function<String, Integer> function = new Function<String, Integer>() {
             @Override
             public Integer apply(String s) {

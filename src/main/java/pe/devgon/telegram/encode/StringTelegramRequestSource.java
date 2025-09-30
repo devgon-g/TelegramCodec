@@ -1,4 +1,4 @@
-﻿package pe.devgon.telegram.encode;
+package pe.devgon.telegram.encode;
 
 public class StringTelegramRequestSource implements TelegramRequestSource {
     private final StringBuilder builder = new StringBuilder();

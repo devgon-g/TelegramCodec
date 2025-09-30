@@ -1,4 +1,4 @@
-﻿package pe.devgon.util;
+package pe.devgon.util;
 
 import java.util.Arrays;
 import java.util.regex.Matcher;

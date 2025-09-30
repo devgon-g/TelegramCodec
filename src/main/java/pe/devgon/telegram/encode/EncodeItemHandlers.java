@@ -1,4 +1,4 @@
-﻿package pe.devgon.telegram.encode;
+package pe.devgon.telegram.encode;
 
 import pe.devgon.functional.util.Pad;
 import pe.devgon.telegram.annotation.CompositeItem;

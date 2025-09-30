@@ -1,4 +1,4 @@
-﻿package pe.devgon.telegram;
+package pe.devgon.telegram;
 
 public class CountHolder {
     private final ThreadLocal<Long> count = new ThreadLocal<>();
