@@ -1,4 +1,4 @@
-﻿package pe.devgon.logging;
+package pe.devgon.logging;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

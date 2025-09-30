@@ -1,4 +1,4 @@
-﻿package pe.devgon.logging.model;
+package pe.devgon.logging.model;
 
 import java.util.Objects;
 
