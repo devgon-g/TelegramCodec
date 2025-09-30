@@ -155,7 +155,9 @@ public class DecodeItemHandlers {
         };
     }
 
-    public static Function<TelegramResponseSource, String> responseSourceGetter(int size) {\n        return source -> source.read(size);\n    }
+    public static Function<TelegramResponseSource, String> responseSourceGetter(int size) {
+        return source -> source.read(size);
+    }
 }
 
 

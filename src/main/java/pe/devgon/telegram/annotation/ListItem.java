@@ -14,5 +14,5 @@ public @interface ListItem {
     int countSize() default 0;
     Pad countPad() default Pad.RIGHT_SPACE;
     int dataSeq();
-    int fixedCount() default 0;
+    long fixedCount() default 0;
 }
