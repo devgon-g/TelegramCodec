@@ -3,7 +3,7 @@ package pe.devgon.logging.model;
 import java.util.Objects;
 
 /**
- * 媛꾨떒???명꽣?섏씠??濡쒓렇 紐⑤뜽.
+ * 揶쏄쑬????紐낃숲??륁뵠??嚥≪뮄??筌뤴뫀??
  */
 public class IfLog {
     private final String target;

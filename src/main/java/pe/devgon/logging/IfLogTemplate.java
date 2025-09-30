@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import pe.devgon.logging.model.IfLog;
 
 /**
- * 媛꾨떒??IfLog 湲곕줉 ?좏떥由ы떚.
+ * 揶쏄쑬???IfLog 疫꿸퀡以??醫뤿뼢?귐뗫뼒.
  */
 public final class IfLogTemplate {
     private static final Logger logger = LoggerFactory.getLogger(IfLogTemplate.class);

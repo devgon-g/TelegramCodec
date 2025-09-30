@@ -9,7 +9,7 @@ public class Masking {
         if (name == null) {
             return null;
         }
-        String regex = "(^[가-힣]+$)";
+        String regex = "(^[媛-??+$)";
 
         Matcher matcher = Pattern.compile(regex).matcher(name);
         if (matcher.find()) {
