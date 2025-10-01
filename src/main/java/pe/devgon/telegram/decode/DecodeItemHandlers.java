@@ -1,4 +1,4 @@
-package pe.devgon.telegram.decode;
+﻿package pe.devgon.telegram.decode;
 
 import lombok.extern.slf4j.Slf4j;
 import pe.devgon.functional.lang.CastTo;
@@ -117,7 +117,7 @@ public class DecodeItemHandlers {
 
     public static <P, T> DecodeItemHandler<P> listItemCount(Class<P> parentClass, Class<List<T>> targetClass, Field field, ListItem itemAnnotation, CountHolder holder) {
         if (!List.class.isAssignableFrom(targetClass)) {
-            throw new InitializeEception("@ListItem 由ъ뒪????낆씠 ?꾨떂 - " + field.getName() + "|" + targetClass.getName());
+            throw new InitializeEception("@ListItem field must be a java.util.List - " + field.getName() + "|" + targetClass.getName());
         }
 
         long fixedCount = itemAnnotation.fixedCount();
@@ -159,5 +159,4 @@ public class DecodeItemHandlers {
         return source -> source.read(size);
     }
 }
-
 
