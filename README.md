@@ -50,9 +50,10 @@ src/main/java/pe/devgon
 
 ## 빌드 & 테스트
 ```bash
-C:\temp\apache-maven-3.9.6\bin\mvn.cmd -f pom.xml -Dfile.encoding=UTF-8 clean test
+C:\temp\apache-maven-3.9.6\bin\mvn.cmd -f pom.xml clean test
 ```
-- Windows 기본 인코딩(MS949)에서 한글 주석이 포함된 소스를 컴파일하려면 `-Dfile.encoding=UTF-8` 옵션을 권장합니다.
+- `pom.xml`에서 Maven 인코딩을 UTF-8로 고정했으므로 별도 VM 옵션 없이 빌드가 가능합니다.
+- Windows 기본 인코딩이 MS949라도 한글 주석이 깨지지 않습니다.
 - Lombok을 사용하므로 IDE에서 annotation processing을 활성화해야 합니다.
 
 ## 구성 요소 상세
@@ -62,9 +63,11 @@ C:\temp\apache-maven-3.9.6\bin\mvn.cmd -f pom.xml -Dfile.encoding=UTF-8 clean te
 - **StringTelegramRequestSource / ResponseSource**: 고정 길이 전문 버퍼 역할을 수행하며, 응답 쪽은 내부적으로 `ByteBuffer`와 `Charset`을 사용합니다.
 - **functional.lang / util**: 문자열 패딩(`Pad`), 타입 변환(`CastTo`, `TypeCast`), 일시/ID 생성, 마스킹, 연속번호 생성 등의 보조 로직을 제공합니다.
 - **logging**: `IfLog` 모델과 `IfLogTemplate` 유틸리티가 전문 입출 로그를 일관된 포맷으로 남깁니다.
+- **테스트**: JUnit Jupiter 5.9.3 기반으로 `EncodeItemHandlers`, `DecodeItemHandlers`, `StringTelegramResponseSource`, `TelegramTemplate`를 검증하는 단위 테스트를 제공합니다.
 
 ## 주의 사항
-- `pom.xml` 내 `org.junit.jupiter:junit-jupiter` 의존성이 중복 선언되어 있으며 `RELEASE` 버전을 사용합니다. 추후 안정적인 버전으로 정리하는 것이 좋습니다.
+- Maven 빌드 인코딩을 UTF-8로 고정했으므로 소스를 다른 인코딩으로 저장하면 경고가 발생할 수 있습니다.
+- 테스트용 DTO에서 필드 접근자(`public` 혹은 getter/setter)가 없으면 리플렉션 기반 핸들러가 값을 세팅하지 못하니 주의하세요.
 - 일부 주석이 기존 인코딩 문제로 깨져 있을 수 있습니다. 가능하면 소스 파일 전체를 UTF-8로 정렬하세요.
 - `IdLoginTokens`와 같이 외부(`cj.tlj.*`) 의존이 필요했던 이전 코드가 제거되었으므로, 추가로 필요한 내부 라이브러리가 있다면 직접 구현하거나 의존성을 명확히 해야 합니다.
 - TCP 통신 시 운영 환경에 맞는 타임아웃/예외 처리가 필요하다면 `TcpClient` 인터페이스를 확장해 사용하세요.
